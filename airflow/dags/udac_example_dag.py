@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from airflow.operators import (StageToRedshiftOperator, LoadFactOperator,
-                               LoadDimensionOperator, DataQualityOperator)
 from airflow.operators.dummy_operator import DummyOperator
 
 from airflow import DAG
+from airflow.plugins.operators import (StageToRedshiftOperator, LoadFactOperator,
+                                       LoadDimensionOperator, DataQualityOperator)
 
 # AWS_KEY = os.environ.get('AWS_KEY')
 # AWS_SECRET = os.environ.get('AWS_SECRET')
