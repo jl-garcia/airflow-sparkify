@@ -12,9 +12,8 @@ class StageToRedshiftOperator(BaseOperator):
         FROM '{}'
         ACCESS_KEY_ID '{}'
         SECRET_ACCESS_KEY '{}'
-        IGNOREHEADER {}
-        DELIMITER '{}'
         region '{}'
+        format as JSON 's3://udacity-dend/log_json_path.json'
     """
 
     @apply_defaults
@@ -62,8 +61,6 @@ class StageToRedshiftOperator(BaseOperator):
             s3_path,
             credentials.access_key,
             credentials.secret_key,
-            self.ignore_headers,
-            self.delimiter,
             self.region
         )
 
