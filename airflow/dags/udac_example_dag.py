@@ -34,16 +34,21 @@ stage_events_to_redshift_task = StageToRedshiftOperator(
     dag=dag,
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
-    table="public.staging_events",
     s3_bucket="udacity-dend",
-    s3_key="log_data"  # TODO import partitioned data
+    s3_key="log_data",
+    table="public.staging_events"
 )
 
 # stage_songs_to_redshift = StageToRedshiftOperator(
 #     task_id='Stage_songs',
-#     dag=dag
+#     dag=dag,
+#     redshift_conn_id="redshift",
+#     aws_credentials_id="aws_credentials",
+#     table="public.staging_songs",
+#     s3_bucket="udacity-dend",
+#     s3_key="song_data"
 # )
-#
+
 # load_songplays_table = LoadFactOperator(
 #     task_id='Load_songplays_fact_table',
 #     dag=dag
