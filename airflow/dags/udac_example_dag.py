@@ -29,6 +29,13 @@ create_stage_events_table_task = PostgresOperator(
     sql=sql_ddl.CREATE_STAGE_EVENTS
 )
 
+create_stage_songs_table_task = PostgresOperator(
+    task_id="create_stage_song_table",
+    dag=dag,
+    postgres_conn_id="redshift",
+    sql=sql_ddl.CREATE_STAGE_SONGS
+)
+
 stage_events_to_redshift_task = StageToRedshiftOperator(
     task_id='Stage_events',
     dag=dag,
@@ -39,15 +46,15 @@ stage_events_to_redshift_task = StageToRedshiftOperator(
     table="public.staging_events"
 )
 
-# stage_songs_to_redshift = StageToRedshiftOperator(
-#     task_id='Stage_songs',
-#     dag=dag,
-#     redshift_conn_id="redshift",
-#     aws_credentials_id="aws_credentials",
-#     table="public.staging_songs",
-#     s3_bucket="udacity-dend",
-#     s3_key="song_data"
-# )
+stage_songs_to_redshift = StageToRedshiftOperator(
+    task_id='Stage_songs',
+    dag=dag,
+    redshift_conn_id="redshift",
+    aws_credentials_id="aws_credentials",
+    s3_bucket="udacity-dend",
+    s3_key="song_data",
+    table="public.staging_events"
+)
 
 # load_songplays_table = LoadFactOperator(
 #     task_id='Load_songplays_fact_table',
@@ -82,5 +89,8 @@ stage_events_to_redshift_task = StageToRedshiftOperator(
 end_operator_task = DummyOperator(task_id='Stop_execution', dag=dag)
 
 start_operator_task >> create_stage_events_table_task
+start_operator_task >> create_stage_songs_table_task
 create_stage_events_table_task >> stage_events_to_redshift_task
+create_stage_songs_table_task >> stage_songs_to_redshift
 stage_events_to_redshift_task >> end_operator_task
+stage_songs_to_redshift >> end_operator_task
