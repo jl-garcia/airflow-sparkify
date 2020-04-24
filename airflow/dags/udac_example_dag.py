@@ -1,9 +1,11 @@
 from datetime import datetime
 
 import sql_ddl
+from airflow.operators import (LoadFactOperator)
 from airflow.operators import (StageToRedshiftOperator)
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
+from helpers import (SqlQueries)
 
 from airflow import DAG
 
@@ -12,10 +14,11 @@ from airflow import DAG
 
 default_args = {
     'owner': 'udacity',
-    'start_date': datetime(2020, 4, 16),
+    'start_date': datetime(2018, 11, 1),
+    'end_date': datetime(2018, 11, 1)
 }
 
-dag = DAG('udac_example_dag_v30',
+dag = DAG('sparkify_v14',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow'
           )
@@ -43,7 +46,8 @@ stage_events_to_redshift_task = StageToRedshiftOperator(
     aws_credentials_id="aws_credentials",
     s3_bucket="udacity-dend",
     s3_key="log_data",
-    table="public.staging_events"
+    table="public.staging_events",
+    file_format="format as JSON 's3://udacity-dend/log_json_path.json'"
 )
 
 stage_songs_to_redshift = StageToRedshiftOperator(
@@ -53,13 +57,18 @@ stage_songs_to_redshift = StageToRedshiftOperator(
     aws_credentials_id="aws_credentials",
     s3_bucket="udacity-dend",
     s3_key="song_data",
-    table="public.staging_events"
+    table="public.staging_songs",
+    file_format="json 'auto'"
 )
 
-# load_songplays_table = LoadFactOperator(
-#     task_id='Load_songplays_fact_table',
-#     dag=dag
-# )
+load_songplays_table = LoadFactOperator(
+    task_id='Load_songplays_fact_table',
+    dag=dag,
+    redshift_conn_id="redshift",
+    ddl=sql_ddl.CREATE_SONGS_TABLE,
+    sql=SqlQueries.songplay_table_insert
+)
+
 #
 # load_user_dimension_table = LoadDimensionOperator(
 #     task_id='Load_user_dim_table',
@@ -90,7 +99,12 @@ end_operator_task = DummyOperator(task_id='Stop_execution', dag=dag)
 
 start_operator_task >> create_stage_events_table_task
 start_operator_task >> create_stage_songs_table_task
+
 create_stage_events_table_task >> stage_events_to_redshift_task
 create_stage_songs_table_task >> stage_songs_to_redshift
-stage_events_to_redshift_task >> end_operator_task
-stage_songs_to_redshift >> end_operator_task
+
+stage_events_to_redshift_task >> load_songplays_table
+stage_songs_to_redshift >> load_songplays_table
+# create_stage_songs_table_task >> stage_songs_to_redshift
+load_songplays_table >> end_operator_task
+# stage_songs_to_redshift >> end_operator_task
