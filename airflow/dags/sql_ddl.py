@@ -38,7 +38,7 @@ CREATE_STAGE_SONGS = ("""
     );
 """)
 
-CREATE_SONGS_TABLE = ("""
+CREATE_SONGSPLAY_TABLE = ("""
     CREATE TABLE IF NOT EXISTS public.songplays
     (
         playid     varchar(32) NOT NULL,
@@ -62,5 +62,17 @@ CREATE_ARTIST_TABLE = ("""
         location  varchar(256),
         lattitude numeric(18, 0),
         longitude numeric(18, 0)
+    );
+""")
+
+CREATE_USER_TABLE = ("""
+    CREATE TABLE IF NOT EXISTS public.users
+    (
+        userid     int4 NOT NULL,
+        first_name varchar(256),
+        last_name  varchar(256),
+        gender     varchar(256),
+        "level"    varchar(256),
+        CONSTRAINT users_pkey PRIMARY KEY (userid)
     );
 """)

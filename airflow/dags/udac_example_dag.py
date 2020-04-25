@@ -20,7 +20,7 @@ default_args = {
     'end_date': datetime(2018, 11, 1)
 }
 
-dag = DAG('sparkify_v1',
+dag = DAG('sparkify_v8',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow'
           )
@@ -58,7 +58,7 @@ stage_songs_to_redshift = StageToRedshiftOperator(
     redshift_conn_id="redshift",
     aws_credentials_id="aws_credentials",
     s3_bucket="udacity-dend",
-    s3_key="song_data",
+    s3_key="song_data/A/A/A/TRAAAAK128F9318786.json",  # TODO remove specific path
     table="public.staging_songs",
     file_format="json 'auto'"
 )
@@ -67,23 +67,23 @@ load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
     dag=dag,
     redshift_conn_id="redshift",
-    ddl=sql_ddl.CREATE_ARTIST_TABLE,
-    sql=SqlQueries.artist_table_insert
+    ddl=sql_ddl.CREATE_SONGSPLAY_TABLE,
+    sql=SqlQueries.songplay_table_insert
 )
 
 load_user_dimension_table = LoadDimensionOperator(
     task_id='Load_user_dim_table',
     dag=dag,
     redshift_conn_id="redshift",
-    ddl=sql_ddl.CREATE_SONGS_TABLE,
-    sql=SqlQueries.songplay_table_insert
+    ddl=sql_ddl.CREATE_USER_TABLE,
+    sql=SqlQueries.user_table_insert
 )
 
 # load_song_dimension_table = LoadDimensionOperator(
 #     task_id='Load_song_dim_table',
 #     dag=dag
 # )
-#
+
 # load_artist_dimension_table = LoadDimensionOperator(
 #     task_id='Load_artist_dim_table',
 #     dag=dag
