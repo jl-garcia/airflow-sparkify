@@ -1,8 +1,10 @@
 from datetime import datetime
 
 import sql_ddl
+from airflow.operators import (LoadDimensionOperator)
 from airflow.operators import (LoadFactOperator)
 from airflow.operators import (StageToRedshiftOperator)
+# from airflow.operators import (DataQualityOperator)
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 from helpers import (SqlQueries)
@@ -18,7 +20,7 @@ default_args = {
     'end_date': datetime(2018, 11, 1)
 }
 
-dag = DAG('sparkify_v14',
+dag = DAG('sparkify_v1',
           default_args=default_args,
           description='Load and transform data in Redshift with Airflow'
           )
@@ -65,16 +67,18 @@ load_songplays_table = LoadFactOperator(
     task_id='Load_songplays_fact_table',
     dag=dag,
     redshift_conn_id="redshift",
+    ddl=sql_ddl.CREATE_ARTIST_TABLE,
+    sql=SqlQueries.artist_table_insert
+)
+
+load_user_dimension_table = LoadDimensionOperator(
+    task_id='Load_user_dim_table',
+    dag=dag,
+    redshift_conn_id="redshift",
     ddl=sql_ddl.CREATE_SONGS_TABLE,
     sql=SqlQueries.songplay_table_insert
 )
 
-#
-# load_user_dimension_table = LoadDimensionOperator(
-#     task_id='Load_user_dim_table',
-#     dag=dag
-# )
-#
 # load_song_dimension_table = LoadDimensionOperator(
 #     task_id='Load_song_dim_table',
 #     dag=dag
@@ -89,7 +93,7 @@ load_songplays_table = LoadFactOperator(
 #     task_id='Load_time_dim_table',
 #     dag=dag
 # )
-#
+
 # run_quality_checks = DataQualityOperator(
 #     task_id='Run_data_quality_checks',
 #     dag=dag
@@ -106,5 +110,6 @@ create_stage_songs_table_task >> stage_songs_to_redshift
 stage_events_to_redshift_task >> load_songplays_table
 stage_songs_to_redshift >> load_songplays_table
 # create_stage_songs_table_task >> stage_songs_to_redshift
-load_songplays_table >> end_operator_task
+load_songplays_table >> load_user_dimension_table
+load_user_dimension_table >> end_operator_task
 # stage_songs_to_redshift >> end_operator_task
