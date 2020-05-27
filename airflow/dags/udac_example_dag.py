@@ -1,10 +1,10 @@
 from datetime import datetime
 
 import sql_ddl
+from airflow.operators import (DataQualityOperator)
 from airflow.operators import (LoadDimensionOperator)
 from airflow.operators import (LoadFactOperator)
 from airflow.operators import (StageToRedshiftOperator)
-# from airflow.operators import (DataQualityOperator)
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.operators.postgres_operator import PostgresOperator
 from helpers import (SqlQueries)
@@ -94,10 +94,10 @@ load_user_dimension_table = LoadDimensionOperator(
 #     dag=dag
 # )
 
-# run_quality_checks = DataQualityOperator(
-#     task_id='Run_data_quality_checks',
-#     dag=dag
-# )
+run_quality_checks = DataQualityOperator(
+    task_id='Run_data_quality_checks',
+    dag=dag
+)
 
 end_operator_task = DummyOperator(task_id='Stop_execution', dag=dag)
 
